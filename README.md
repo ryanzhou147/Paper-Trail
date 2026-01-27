@@ -1,4 +1,4 @@
-# Job Application Tracker
+# PaperTrail$
 
 Automatically scans your Gmail inbox for job application confirmation emails and logs them to a Google Sheet. Runs unattended via cron on a Linux system.
 
