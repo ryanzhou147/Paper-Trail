@@ -175,6 +175,43 @@ SPECIALIZATIONS = [
 
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
+# Phrases indicating rejection emails (check BEFORE confirmation)
+REJECTION_INDICATORS = [
+    "won't be moving forward",
+    "will not be moving forward",
+    "not be moving forward",
+    "not moving forward",
+    "decided not to proceed",
+    "decided to move forward with other candidates",
+    "moving forward with other candidates",
+    "pursuing other candidates",
+    "not be pursuing your",
+    "unfortunately we have decided",
+    "unfortunately, we have decided",
+    "regret to inform",
+    "not selected",
+    "were not selected",
+    "was not selected",
+    "have not been selected",
+    "has not been selected",
+    "position has been filled",
+    "role has been filled",
+    "no longer considering",
+    "will not be proceeding",
+    "unable to offer you",
+    "not able to offer you",
+    "cannot offer you",
+    "decided to pursue other",
+    "chosen to pursue other",
+    "after careful consideration",
+    "not the right fit",
+    "not a good fit",
+    "wish you the best",
+    "wish you every success",
+    "good luck in your",
+    "best of luck in your",
+]
+
 # Phrases indicating incomplete/started-but-not-submitted applications
 INCOMPLETE_INDICATORS = [
     "incomplete",
@@ -426,6 +463,15 @@ def extract_source(headers: dict[str, str]) -> Optional[str]:
     return None
 
 
+def is_rejection_email(text: str, subject: str) -> bool:
+    """Check if the email is a rejection (not a confirmation)."""
+    combined = (text + " " + subject).lower()
+    for indicator in REJECTION_INDICATORS:
+        if indicator in combined:
+            return True
+    return False
+
+
 def is_incomplete_application(text: str, subject: str) -> bool:
     """Check if the email indicates an incomplete/started application."""
     combined = (text + " " + subject).lower()
@@ -445,6 +491,11 @@ def parse_email(message: dict[str, Any]) -> Optional[JobApplication]:
     sender = headers.get("from", "")
 
     logger.debug(f"Parsing email {message_id}: {subject[:50]}...")
+
+    # Skip rejection emails (check first before confirmation logic)
+    if is_rejection_email(text, subject):
+        logger.info(f"Skipping rejection email: {subject[:50]}...")
+        return None
 
     # Skip incomplete/started applications
     if is_incomplete_application(text, subject):
