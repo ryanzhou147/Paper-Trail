@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Cron wrapper script for job application tracker
 # Usage: ./scripts/run.sh
-# Add to crontab: 0 */6 * * * /path/to/job-tracker/scripts/run.sh
+# Add to crontab: 0 9 * * * /path/to/job-tracker/scripts/run.sh
 
 set -euo pipefail
 

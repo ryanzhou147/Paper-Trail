@@ -10,7 +10,7 @@ Automatically scans your Gmail inbox for job application confirmation emails and
 - Moves processed emails to trash (not permanently deleted)
 - Deduplicates using SQLite to avoid duplicate entries
 - Filters out incomplete/started applications
-- Runs automatically every hour via cron
+- Runs automatically once daily via cron
 
 ## Prerequisites
 
@@ -103,7 +103,7 @@ Before creating credentials, you must configure the consent screen:
    sheet_name: "Sheet1"
 
    # How many days back to search for emails
-   gmail_query_days: 7
+   gmail_query_days: 2
 
    # Minimum confidence to accept (0.0 to 1.0)
    confidence_threshold: 0.3
@@ -134,7 +134,7 @@ After successful auth, tokens are saved to `config/token.json` and `config/sheet
 
 ### 6. Set Up Automatic Scheduling (Cron)
 
-To run the tracker every hour:
+To run the tracker once daily:
 
 ```bash
 crontab -e
@@ -143,15 +143,10 @@ crontab -e
 Add this line (replace with your actual paths and API key):
 
 ```
-0 * * * * OPENROUTER_API_KEY=your-openrouter-key /path/to/job-tracker/scripts/run.sh
+0 9 * * * OPENROUTER_API_KEY=your-openrouter-key /path/to/job-tracker/scripts/run.sh
 ```
 
-This runs at the top of every hour (10:00, 11:00, etc.).
-
-Other scheduling options:
-- Every 30 minutes: `*/30 * * * *`
-- Every 6 hours: `0 */6 * * *`
-- Once daily at 9am: `0 9 * * *`
+This runs once daily at 9am.
 
 ### 7. Verify It's Working
 
