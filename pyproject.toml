@@ -1,0 +1,15 @@
+[project]
+name = "job-tracker"
+version = "0.1.0"
+description = "Gmail to Google Sheets job application tracker"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "google-api-python-client",
+    "google-auth-httplib2",
+    "google-auth-oauthlib",
+    "filelock",
+    "pydantic",
+    "pyyaml",
+    "requests",
+]

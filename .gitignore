@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+*.egg-info/
+
+# UV - uv.lock is tracked for reproducible builds
+
+# Config with secrets
+config/credentials.json
+config/token.json
+config/sheets_token.json
+config/config.yaml
+
+# Data
+data/*.sqlite
+
+# Logs
+logs/*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+
+# Concurrency lock files
+/tmp/job_tracker.lock

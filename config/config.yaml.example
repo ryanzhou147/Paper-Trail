@@ -1,0 +1,17 @@
+# Job Application Tracker Configuration
+# Copy this file to config.yaml and fill in your settings
+
+# Google Spreadsheet ID (from the URL: docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit)
+spreadsheet_id: "your-spreadsheet-id-here"
+
+# Sheet name within the spreadsheet
+sheet_name: "Applications"
+
+# Logging level (DEBUG, INFO, WARNING, ERROR)
+log_level: "INFO"
+
+# Number of days to look back for emails
+gmail_query_days: 7
+
+# Minimum confidence threshold for parsed applications (0.0 to 1.0)
+confidence_threshold: 0.5
