@@ -492,16 +492,6 @@ def parse_email(message: dict[str, Any]) -> Optional[JobApplication]:
 
     logger.debug(f"Parsing email {message_id}: {subject[:50]}...")
 
-    # Skip rejection emails (check first before confirmation logic)
-    if is_rejection_email(text, subject):
-        logger.info(f"Skipping rejection email: {subject[:50]}...")
-        return None
-
-    # Skip incomplete/started applications
-    if is_incomplete_application(text, subject):
-        logger.info(f"Skipping incomplete application email: {subject[:50]}...")
-        return None
-
     # Try regex-based extraction first
     regex_company = extract_company_from_email(text, headers)
     regex_position = match_job_title(text) or match_job_title(subject)
