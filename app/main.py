@@ -8,7 +8,7 @@ from filelock import FileLock, Timeout
 
 from .config import get_config, load_config
 from .dedupe import init_db, is_duplicate, is_processed, mark_processed
-from .gmail_client import delete_email, fetch_new_emails
+from .gmail_client import delete_email, fetch_recent_emails
 from .parser import parse_email
 from .sheets import append_rows
 
@@ -34,10 +34,23 @@ def setup_logging() -> None:
     )
 
 
-def run_pipeline() -> dict:
+def prompt_email_count() -> int:
+    """Prompt the user for the number of recent inbox emails to process."""
+    while True:
+        try:
+            raw = input("How many of your most recent inbox emails are job applications? ")
+            count = int(raw.strip())
+            if count < 0:
+                print("Please enter a non-negative number.")
+                continue
+            return count
+        except ValueError:
+            print("Please enter a valid number.")
+
+
+def run_pipeline(email_count: int) -> dict:
     """Run the main email processing pipeline."""
     logger = logging.getLogger(__name__)
-    config = get_config()
 
     stats = {
         "emails_fetched": 0,
@@ -49,13 +62,17 @@ def run_pipeline() -> dict:
         "errors": 0,
     }
 
+    if email_count == 0:
+        logger.info("No emails to process")
+        return stats
+
     logger.info("Starting job application tracker pipeline")
 
     init_db()
 
-    logger.info("Fetching emails from Gmail...")
+    logger.info(f"Fetching {email_count} most recent emails from inbox...")
     try:
-        emails = fetch_new_emails()
+        emails = fetch_recent_emails(email_count)
         stats["emails_fetched"] = len(emails)
     except Exception as e:
         logger.error(f"Failed to fetch emails: {e}")
@@ -75,19 +92,11 @@ def run_pipeline() -> dict:
             job = parse_email(email)
 
             if job is None:
-                logger.debug(f"Could not parse email: {email_id}")
+                logger.warning(f"Could not parse email: {email_id}")
                 stats["errors"] += 1
                 continue
 
             stats["emails_parsed"] += 1
-
-            if job.confidence < config.confidence_threshold:
-                logger.info(
-                    f"Skipping low confidence ({job.confidence}) application: "
-                    f"{job.company} - {job.position}"
-                )
-                mark_processed(email_id, job)
-                continue
 
             if is_duplicate(job.company, job.position, job.date_applied):
                 logger.info(
@@ -143,10 +152,12 @@ def main() -> int:
 
     logger = logging.getLogger(__name__)
 
+    email_count = prompt_email_count()
+
     try:
         with FileLock(LOCK_FILE, timeout=10):
             logger.info("Acquired lock, starting pipeline")
-            stats = run_pipeline()
+            stats = run_pipeline(email_count)
             return 0 if stats["errors"] == 0 else 1
 
     except Timeout:
