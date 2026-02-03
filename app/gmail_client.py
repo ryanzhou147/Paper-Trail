@@ -1,8 +1,7 @@
-"""Gmail API client for fetching job application emails."""
+"""Gmail API client for fetching emails."""
 
 import base64
 import logging
-from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Optional
 
@@ -11,82 +10,9 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
-from .config import get_config
-
 logger = logging.getLogger(__name__)
 
 SCOPES = ["https://www.googleapis.com/auth/gmail.modify"]
-
-ATS_DOMAINS = [
-    # Major ATS platforms
-    "greenhouse.io",
-    "greenhouse-mail.io",
-    "lever.co",
-    "ashbyhq.com",
-    "smartrecruiters.com",
-    "icims.com",
-    "jobvite.com",
-    "ultipro.com",
-    "taleo.net",
-    "oraclecloud.com",
-    # Workday variants
-    "workday.com",
-    "myworkday.com",
-    "myworkdayjobs.com",
-    "wd1.myworkdayjobs.com",
-    "wd3.myworkdayjobs.com",
-    "wd5.myworkdayjobs.com",
-    # Other ATS/HR platforms
-    "breezy.hr",
-    "bamboohr.com",
-    "recruiterbox.com",
-    "recruitee.com",
-    "workable.com",
-    "jazz.co",
-    "jazzhr.com",
-    "pinpointhq.com",
-    "applytojob.com",
-    "hire.lever.co",
-    "jobs.lever.co",
-    "successfactors.com",
-    "adp.com",
-    "paylocity.com",
-    "paycom.com",
-    "ceridian.com",
-    "dayforce.com",
-    # Job boards
-    "linkedin.com",
-    "indeed.com",
-    "ziprecruiter.com",
-    "glassdoor.com",
-    "angel.co",
-    "wellfound.com",
-]
-
-SUBJECT_KEYWORDS = [
-    # Application confirmations
-    "thank you for applying",
-    "thanks for applying",
-    "thank you for your application",
-    "thanks for your application",
-    "application received",
-    "application submitted",
-    "application confirmation",
-    "we received your application",
-    "we have received your application",
-    "your application has been received",
-    "your application was received",
-    "successfully submitted",
-    "successfully applied",
-    # Generic
-    "application",
-    "applied",
-    "applying",
-    # Interest expressions
-    "thank you for your interest",
-    "thanks for your interest",
-    "interest in joining",
-]
 
 
 def get_credentials() -> Credentials:
@@ -123,46 +49,23 @@ def get_credentials() -> Credentials:
     return creds
 
 
-def build_gmail_query(days_back: int = 7) -> str:
-    """Build Gmail search query for job application emails."""
-    after_date = (datetime.now() - timedelta(days=days_back)).strftime("%Y/%m/%d")
 
-    domain_queries = " OR ".join([f"from:{domain}" for domain in ATS_DOMAINS])
-    subject_queries = " OR ".join([f'subject:"{kw}"' for kw in SUBJECT_KEYWORDS])
-
-    # Only check Primary inbox category
-    query = f"after:{after_date} category:primary ({domain_queries} OR {subject_queries})"
-    return query
-
-
-def fetch_new_emails() -> list[dict[str, Any]]:
-    """Fetch new job application emails from Gmail."""
-    config = get_config()
+def fetch_recent_emails(count: int) -> list[dict[str, Any]]:
+    """Fetch the N most recent emails from the inbox."""
     creds = get_credentials()
     service = build("gmail", "v1", credentials=creds)
 
-    query = build_gmail_query(config.gmail_query_days)
-    logger.info(f"Fetching emails with query: {query}")
+    logger.info(f"Fetching {count} most recent inbox emails")
 
-    messages = []
-    page_token = None
+    results = (
+        service.users()
+        .messages()
+        .list(userId="me", q="in:inbox", maxResults=count)
+        .execute()
+    )
 
-    while True:
-        results = (
-            service.users()
-            .messages()
-            .list(userId="me", q=query, pageToken=page_token)
-            .execute()
-        )
-
-        if "messages" in results:
-            messages.extend(results["messages"])
-
-        page_token = results.get("nextPageToken")
-        if not page_token:
-            break
-
-    logger.info(f"Found {len(messages)} potential application emails")
+    messages = results.get("messages", [])
+    logger.info(f"Found {len(messages)} emails")
 
     full_messages = []
     for msg_ref in messages:
