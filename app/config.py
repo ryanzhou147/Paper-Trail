@@ -13,8 +13,6 @@ class Config(BaseModel):
     spreadsheet_id: str
     sheet_name: str = "Applications"
     log_level: str = "INFO"
-    gmail_query_days: int = 2
-    confidence_threshold: float = 0.5
 
 
 _config: Optional[Config] = None
