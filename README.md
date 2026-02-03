@@ -63,12 +63,7 @@ uv sync
 4. Click **Create**, then **Download JSON**
 5. Save the file as `config/credentials.json`
 
-### 3. OpenRouter API Key
-
-1. Go to [OpenRouter](https://openrouter.ai/)
-2. Sign up and get an API key
-
-### 4. Configure the Application
+### 3. Configure the Application
 
 ```bash
 cp config/config.yaml.example config/config.yaml
@@ -83,40 +78,44 @@ spreadsheet_id: "your-spreadsheet-id-here"
 
 # The sheet/tab name within the spreadsheet
 sheet_name: "Sheet1"
+
+# OpenRouter API key (https://openrouter.ai/)
+openrouter_api_key: "your-openrouter-api-key-here"
 ```
 
 Create a new Google Sheet and copy its ID from the URL.
 
-### 5. First Run (OAuth Authentication)
+### 4. First Run (OAuth Authentication)
 
 The first run will open your browser to authenticate with Google:
 
 ```bash
-OPENROUTER_API_KEY=your-openrouter-key uv run python -m app.main
+.venv/bin/python -m app.main
 ```
 
 You'll be prompted to sign in and grant permissions for Gmail and Sheets. After successful auth, tokens are saved locally and you won't need to authenticate again unless they expire.
 
 If you get **Error 403: access_denied**, make sure your email is added as a test user in the OAuth consent screen.
 
-### 6. Set Up Automatic Scheduling (Cron)
+### 5. Set Up Automatic Scheduling (Cron)
 
 ```bash
 crontab -e
 ```
 
-Add this line (replace with your actual paths and API key):
+Add these lines (replace with your actual path):
 
 ```
-0 9 * * * OPENROUTER_API_KEY=your-openrouter-key /path/to/job-tracker/scripts/run.sh
+0 12 * * * /path/to/job-tracker/scripts/run.sh
+0 22 * * * /path/to/job-tracker/scripts/run.sh
 ```
 
-This runs once daily at 9am. The script will prompt you for the number of recent job application emails to process.
+A terminal window will pop up at 12pm and 10pm daily asking how many recent emails to process. Enter the number, and it runs. Press Enter to close the window when done.
 
 ## Usage
 
 ```bash
-OPENROUTER_API_KEY=your-key uv run python -m app.main
+.venv/bin/python -m app.main
 ```
 
 The program will ask:
@@ -149,7 +148,7 @@ job-tracker/
 │   ├── models.py        # Data models
 │   └── config.py        # Configuration loading
 ├── config/
-│   ├── config.yaml      # Your configuration (git-ignored)
+│   ├── config.yaml      # All settings + API key (git-ignored)
 │   ├── config.yaml.example
 │   ├── credentials.json # OAuth client (git-ignored)
 │   ├── token.json       # Gmail token (git-ignored)
@@ -182,7 +181,7 @@ https://console.developers.google.com/apis/api/sheets.googleapis.com
 Delete the token files and re-run to re-authenticate:
 ```bash
 rm config/token.json config/sheets_token.json
-OPENROUTER_API_KEY=your-key uv run python -m app.main
+.venv/bin/python -m app.main
 ```
 
 ## Resetting
@@ -197,10 +196,9 @@ rm logs/*.log
 
 ## Security Notes
 
-- OAuth tokens are stored locally (never commit them)
+- All secrets (API keys, OAuth tokens) live in `config/` which is git-ignored
 - The Gmail scope allows read/modify (needed to trash emails)
 - No email content is permanently stored
-- API keys should be set as environment variables, not in code
 
 ## License
 
