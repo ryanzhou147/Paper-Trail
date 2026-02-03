@@ -3,7 +3,6 @@
 import html
 import json
 import logging
-import os
 import re
 from datetime import date, datetime
 from email.utils import parsedate_to_datetime
@@ -354,9 +353,10 @@ def extract_company_from_email(text: str, headers: dict[str, str]) -> Optional[s
 
 def extract_with_llm(text: str, subject: str, sender: str) -> Optional[dict]:
     """Use OpenRouter LLM to extract job application details."""
-    api_key = os.environ.get("OPENROUTER_API_KEY")
+    from .config import get_config
+    api_key = get_config().openrouter_api_key
     if not api_key:
-        logger.debug("OPENROUTER_API_KEY not set, skipping LLM extraction")
+        logger.debug("openrouter_api_key not set in config, skipping LLM extraction")
         return None
 
     # Truncate text to avoid token limits
