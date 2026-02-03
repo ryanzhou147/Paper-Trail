@@ -13,6 +13,7 @@ class Config(BaseModel):
     spreadsheet_id: str
     sheet_name: str = "Applications"
     log_level: str = "INFO"
+    openrouter_api_key: str = ""
 
 
 _config: Optional[Config] = None
