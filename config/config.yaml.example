@@ -9,9 +9,3 @@ sheet_name: "Applications"
 
 # Logging level (DEBUG, INFO, WARNING, ERROR)
 log_level: "INFO"
-
-# Number of days to look back for emails
-gmail_query_days: 7
-
-# Minimum confidence threshold for parsed applications (0.0 to 1.0)
-confidence_threshold: 0.5
