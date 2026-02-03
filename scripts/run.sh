@@ -1,33 +1,37 @@
 #!/usr/bin/env bash
 # Cron wrapper script for job application tracker
-# Usage: ./scripts/run.sh
-# Add to crontab: 0 9 * * * /path/to/job-tracker/scripts/run.sh
+# Opens a terminal window so the user can enter the email count interactively.
+#
+# Add to crontab:
+#   0 12 * * * /path/to/job-tracker/scripts/run.sh
+#   0 22 * * * /path/to/job-tracker/scripts/run.sh
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 LOG_DIR="$PROJECT_DIR/logs"
+PYTHON="$PROJECT_DIR/.venv/bin/python"
 
 mkdir -p "$LOG_DIR"
 
-cd "$PROJECT_DIR"
+export DISPLAY=:0
+export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
 
-LOG_FILE="$LOG_DIR/cron.log"
+gnome-terminal -- bash -c "
+    cd '$PROJECT_DIR'
+    echo '======================================' >> '$LOG_DIR/cron.log'
+    echo \"Run started at \$(date -Iseconds)\" >> '$LOG_DIR/cron.log'
+    echo '======================================' >> '$LOG_DIR/cron.log'
 
-echo "======================================" >> "$LOG_FILE"
-echo "Run started at $(date -Iseconds)" >> "$LOG_FILE"
-echo "======================================" >> "$LOG_FILE"
+    '$PYTHON' -m app.main 2>&1 | tee -a '$LOG_DIR/cron.log'
+    EXIT_CODE=\${PIPESTATUS[0]}
 
-if command -v uv &> /dev/null; then
-    uv run python -m app.main >> "$LOG_FILE" 2>&1
-    EXIT_CODE=$?
-else
-    echo "Error: uv not found. Please install uv first." >> "$LOG_FILE"
-    EXIT_CODE=1
-fi
+    echo \"Run completed at \$(date -Iseconds) with exit code \$EXIT_CODE\" >> '$LOG_DIR/cron.log'
+    echo '' >> '$LOG_DIR/cron.log'
 
-echo "Run completed at $(date -Iseconds) with exit code $EXIT_CODE" >> "$LOG_FILE"
-echo "" >> "$LOG_FILE"
-
-exit $EXIT_CODE
+    echo ''
+    echo 'Press Enter to close...'
+    read
+    exit \$EXIT_CODE
+"
