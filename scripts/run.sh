@@ -15,7 +15,7 @@ PYTHON="$PROJECT_DIR/.venv/bin/python"
 
 mkdir -p "$LOG_DIR"
 
-export DISPLAY=:0
+export DISPLAY=$(who | grep -oP '\(:\d+\)' | head -1 | tr -d '()' || echo ":0")
 export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
 
 gnome-terminal -- bash -c "
