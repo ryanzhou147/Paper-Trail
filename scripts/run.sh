@@ -18,6 +18,12 @@ mkdir -p "$LOG_DIR"
 export DISPLAY=$(who | grep -oP '\(:\d+\)' | head -1 | tr -d '()' || echo ":0")
 export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
 
+# Clear snap-injected env vars that break gnome-terminal when launched from VS Code
+unset GTK_PATH GTK_EXE_PREFIX GTK_IM_MODULE_FILE GIO_MODULE_DIR LOCPATH GSETTINGS_SCHEMA_DIR
+unset GDK_BACKEND
+export LD_LIBRARY_PATH=
+export XDG_DATA_DIRS="/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop"
+
 gnome-terminal -- bash -c "
     cd '$PROJECT_DIR'
     echo '======================================' >> '$LOG_DIR/cron.log'
