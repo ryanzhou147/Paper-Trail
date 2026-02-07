@@ -7,7 +7,7 @@ from pathlib import Path
 from filelock import FileLock, Timeout
 
 from .config import get_config, load_config
-from .dedupe import init_db, is_duplicate, is_processed, mark_processed
+from .dedupe import init_db, is_processed, mark_processed
 from .gmail_client import delete_email, fetch_recent_emails
 from .parser import parse_email
 from .sheets import append_rows
@@ -56,7 +56,6 @@ def run_pipeline(email_count: int) -> dict:
         "emails_fetched": 0,
         "emails_skipped": 0,
         "emails_parsed": 0,
-        "duplicates": 0,
         "applications_added": 0,
         "emails_deleted": 0,
         "errors": 0,
@@ -97,14 +96,6 @@ def run_pipeline(email_count: int) -> dict:
                 continue
 
             stats["emails_parsed"] += 1
-
-            if is_duplicate(job.company, job.position, job.date_applied):
-                logger.info(
-                    f"Skipping duplicate application: {job.company} - {job.position}"
-                )
-                stats["duplicates"] += 1
-                mark_processed(email_id, job)
-                continue
 
             applications_to_add.append(job)
             mark_processed(email_id, job)
