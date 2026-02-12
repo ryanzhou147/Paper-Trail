@@ -26,9 +26,7 @@ export XDG_DATA_DIRS="/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/
 
 gnome-terminal -- bash -c "
     cd '$PROJECT_DIR'
-    echo '======================================' >> '$LOG_DIR/cron.log'
     echo \"Run started at \$(date -Iseconds)\" >> '$LOG_DIR/cron.log'
-    echo '======================================' >> '$LOG_DIR/cron.log'
 
     '$PYTHON' -m app.main 2>&1 | tee -a '$LOG_DIR/cron.log'
     EXIT_CODE=\${PIPESTATUS[0]}
